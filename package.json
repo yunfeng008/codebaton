@@ -1,0 +1,41 @@
+{
+  "name": "agent-baton",
+  "version": "0.1.0",
+  "description": "跨 AI 编程工具接力协议：让 ZCode / DeepSeek / Kimi / MiniMax / Claude Code 等任意 harness 接住同一个任务。三件套 AGENTS.md+TASKS.md+HANDOFF.md，零依赖、无遥测、即用即走",
+  "license": "MIT",
+  "author": "dzp",
+  "type": "commonjs",
+  "bin": {
+    "agent-baton": "bin/cli.js"
+  },
+  "files": [
+    "bin/",
+    "templates/"
+  ],
+  "engines": {
+    "node": ">=16"
+  },
+  "keywords": [
+    "ai",
+    "agent",
+    "coding-agent",
+    "handoff",
+    "relay",
+    "agents-md",
+    "zcode",
+    "deepseek",
+    "kimi",
+    "minimax",
+    "claude-code",
+    "cross-tool",
+    "tasks"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yunfeng008/agent-baton.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yunfeng008/agent-baton/issues"
+  },
+  "homepage": "https://github.com/yunfeng008/agent-baton#readme"
+}
