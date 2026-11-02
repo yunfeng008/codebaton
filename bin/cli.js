@@ -84,7 +84,8 @@ function cmdInit(targetDir) {
   console.log('  3. HANDOFF.md  — 当前状态（新项目可基本留空）');
   console.log('');
   console.log('之后的工作流：');
-  console.log('  · 任何 agent 工具开工前，第一句话：' + c.cyan('"读 AGENTS.md、TASKS.md、HANDOFF.md，继续进行中任务"'));
+  console.log('  · 任何 agent 工具开工，第一句话：' + c.cyan('按 AGENTS.md 接手'));
+  console.log(c.dim('    （AGENTS.md 已写明开工前必读 TASKS.md / HANDOFF.md，一句话够用；npx codebaton brief 取口令）'));
   console.log('  · 换工具/收尾前，运行 ' + c.cyan('npx codebaton handoff') + ' 起草交接，让 agent 合并进 HANDOFF.md');
   console.log('  · npx codebaton board 随时看任务面板');
 }
@@ -170,6 +171,24 @@ function cmdBoard(targetDir) {
   }
 }
 
+// ---------- brief（开工口令）----------
+
+function cmdBrief() {
+  const line = '按 AGENTS.md 接手';
+  console.log('开工口令（发给任意 agent 工具的第一句话）：\n');
+  console.log(c.bold('  ' + line) + '\n');
+  let copied = false;
+  try {
+    const cp = process.platform === 'darwin' ? 'pbcopy' : process.platform === 'win32' ? 'clip' : 'wl-copy';
+    execFileSync(cp, { input: line, stdio: ['pipe', 'ignore', 'ignore'] });
+    copied = true;
+  } catch { /* 无剪贴板工具也不影响 */ }
+  if (copied) console.log(c.dim('（已复制到剪贴板）\n'));
+  console.log('为什么一句话就够：AGENTS.md 里已写明"开工前先读 TASKS.md 和 HANDOFF.md"，');
+  console.log('协议住在文件里，口令只负责叫门。');
+  console.log(c.dim('若某工具不自动读 AGENTS.md，用完整版："读 AGENTS.md、TASKS.md、HANDOFF.md，继续进行中任务"'));
+}
+
 // ---------- 入口 ----------
 
 const HELP = `
@@ -177,6 +196,7 @@ ${c.bold('codebaton')} — 跨 AI 编程工具接力协议（ZCode / DeepSeek / 
 
 用法：
   npx codebaton init [目录]     生成三件套（AGENTS.md / TASKS.md / HANDOFF.md，已存在的不覆盖）
+  npx codebaton brief           开工口令：一句话让任意工具接手（自动复制到剪贴板）
   npx codebaton handoff [目录]  用 git 事实自动起草交接，交给当前 agent 合并进 HANDOFF.md
   npx codebaton board [目录]    终端渲染 TASKS.md 任务看板
 
@@ -186,6 +206,7 @@ ${c.bold('codebaton')} — 跨 AI 编程工具接力协议（ZCode / DeepSeek / 
 const [, , cmd, ...rest] = process.argv;
 switch (cmd) {
   case 'init': cmdInit(rest[0]); break;
+  case 'brief': cmdBrief(); break;
   case 'handoff': cmdHandoff(rest[0]); break;
   case 'board': cmdBoard(rest[0]); break;
   case undefined:

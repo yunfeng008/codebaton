@@ -30,13 +30,14 @@ npx codebaton init
 | `TASKS.md` | 任务层：⬜ 待办 / 🔨 进行中 / 👀 待验证 / ✅ 完成 | 每次收尾更新 |
 | `HANDOFF.md` | 交接层：此刻干到哪、关键决定、踩过的坑、下一步 | **谁收尾谁写** |
 
-核心纪律只有一条：**谁收尾，谁写交接。** 换工具前，让当前工具更新 HANDOFF.md；新工具进来，第一句话："读 AGENTS.md、TASKS.md、HANDOFF.md，继续进行中任务。" 交接成本从"重新解释一切"降到"读三份文件"（约 1-3k token）。
+核心纪律只有一条：**谁收尾，谁写交接。** 换工具前，让当前工具更新 HANDOFF.md；新工具进来，第一句话：**"按 AGENTS.md 接手"**——协议已写进 AGENTS.md（开工前必读 TASKS.md 和 HANDOFF.md），口令只负责叫门，一句话就够（`npx codebaton brief` 随时取）。交接成本从"重新解释一切"降到"读三份文件"（约 1-3k token）。
 
 ## 三个命令
 
 ```bash
 npx codebaton init      # 生成三件套（检测到已有文件不覆盖）
 npx codebaton handoff   # 用 git 事实（分支/未提交改动/最近提交/diff）自动起草交接草稿
+npx codebaton brief     # 开工口令：一句话让任意工具接手（自动复制到剪贴板）
 npx codebaton board     # 终端渲染 TASKS.md 看板
 ```
 
@@ -56,7 +57,7 @@ ZCode：改完 TtdkLoginController，编译通过，TASKS.md 挂"进行中"，
        npx codebaton handoff 起草交接，commit
 ——晚上——
 你：DeepSeek 打开同一仓库
-你：读 AGENTS.md、TASKS.md、HANDOFF.md，继续进行中任务
+你：按 AGENTS.md 接手
 DeepSeek：明白，登录改到手机号验证码，controller 已有雏形，
           service 层还差短信网关对接，我继续……
 ```

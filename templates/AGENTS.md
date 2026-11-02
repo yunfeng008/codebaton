@@ -19,7 +19,7 @@
 本仓库由多个 AI 编程工具接力开发（ZCode / DeepSeek / Kimi / MiniMax / Claude Code 等）：
 
 - **任务面板在 `TASKS.md`，当前交接状态在 `HANDOFF.md`**
-- 任何工具**开工前**：先读 AGENTS.md、TASKS.md、HANDOFF.md，然后继续"进行中"任务或等用户指令
+- 任何工具**开工前**：先读 AGENTS.md、TASKS.md、HANDOFF.md，然后继续"进行中"任务或等用户指令（用户说"按 AGENTS.md 接手"即指此流程）
 - **谁收尾谁写交接**：任务告一段落或要换工具前，必须更新 TASKS.md（勾掉完成的）和 HANDOFF.md（做了什么、关键决定、踩的坑、下一步）；可运行 `npx codebaton handoff` 自动起草
 - 有价值的"为什么"写进 HANDOFF.md，别只留在会话里——会话不能迁移，文件才能
 
