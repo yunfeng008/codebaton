@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * agent-baton — 跨 AI 编程工具接力协议
+ * codebaton — 跨 AI 编程工具接力协议
  * 命令：init（生成三件套）/ handoff（自动起草交接）/ board（终端看板）
  * 零依赖，Node >= 16
  */
@@ -85,8 +85,8 @@ function cmdInit(targetDir) {
   console.log('');
   console.log('之后的工作流：');
   console.log('  · 任何 agent 工具开工前，第一句话：' + c.cyan('"读 AGENTS.md、TASKS.md、HANDOFF.md，继续进行中任务"'));
-  console.log('  · 换工具/收尾前，运行 ' + c.cyan('npx agent-baton handoff') + ' 起草交接，让 agent 合并进 HANDOFF.md');
-  console.log('  · npx agent-baton board 随时看任务面板');
+  console.log('  · 换工具/收尾前，运行 ' + c.cyan('npx codebaton handoff') + ' 起草交接，让 agent 合并进 HANDOFF.md');
+  console.log('  · npx codebaton board 随时看任务面板');
 }
 
 // ---------- handoff ----------
@@ -106,7 +106,7 @@ function cmdHandoff(targetDir) {
     ? status.split('\n').map((l) => '  - ' + l).join('\n')
     : '  （工作区干净，无未提交改动）';
 
-  const draft = `## 交接草稿（agent-baton handoff 自动生成于 ${today()}）
+  const draft = `## 交接草稿（codebaton handoff 自动生成于 ${today()}）
 
 - 当前分支：\`${branch}\`
 - 未提交改动：${status ? status.split('\n').length + ' 个文件' : '无'}
@@ -143,7 +143,7 @@ function cmdBoard(targetDir) {
   targetDir = path.resolve(targetDir || process.cwd());
   const tasksPath = path.join(targetDir, 'TASKS.md');
   if (!fs.existsSync(tasksPath)) {
-    console.error(c.red('✗ 未找到 TASKS.md，先运行 npx agent-baton init'));
+    console.error(c.red('✗ 未找到 TASKS.md，先运行 npx codebaton init'));
     process.exit(1);
   }
   const lines = fs.readFileSync(tasksPath, 'utf8').split('\n');
@@ -173,12 +173,12 @@ function cmdBoard(targetDir) {
 // ---------- 入口 ----------
 
 const HELP = `
-${c.bold('agent-baton')} — 跨 AI 编程工具接力协议（ZCode / DeepSeek / Kimi / MiniMax / Claude Code …）
+${c.bold('codebaton')} — 跨 AI 编程工具接力协议（ZCode / DeepSeek / Kimi / MiniMax / Claude Code …）
 
 用法：
-  npx agent-baton init [目录]     生成三件套（AGENTS.md / TASKS.md / HANDOFF.md，已存在的不覆盖）
-  npx agent-baton handoff [目录]  用 git 事实自动起草交接，交给当前 agent 合并进 HANDOFF.md
-  npx agent-baton board [目录]    终端渲染 TASKS.md 任务看板
+  npx codebaton init [目录]     生成三件套（AGENTS.md / TASKS.md / HANDOFF.md，已存在的不覆盖）
+  npx codebaton handoff [目录]  用 git 事实自动起草交接，交给当前 agent 合并进 HANDOFF.md
+  npx codebaton board [目录]    终端渲染 TASKS.md 任务看板
 
 理念：会话不能跨工具迁移，文件可以。谁收尾，谁写交接。
 `;

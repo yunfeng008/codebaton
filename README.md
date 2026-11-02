@@ -1,11 +1,11 @@
-# agent-baton 🏃‍♂️🏃 Agent 接力棒
+# codebaton 🏃‍♂️🏃 Agent 接力棒
 
 **跨 AI 编程工具的任务接力协议 + 小工具。** 让 ZCode、DeepSeek、Kimi、MiniMax、Claude Code、Codex……任何一个工具，都能接住另一个工具没干完的活。
 
 > **✨ 功能完整 · 极致轻量 · 安全透明 · 零遥测** —— 3 个 markdown 文件 + 1 个零依赖 CLI，不装守护进程、不占端口、不联网上报，所有数据只存在你自己的仓库里。
 
 ```bash
-npx agent-baton init
+npx codebaton init
 ```
 
 ## 为什么需要它
@@ -20,7 +20,7 @@ npx agent-baton init
 | 交接工具（Paseo / Cindy） | ✅ | ❌ 引擎锁死 |
 | 记忆插件（claude-mem / EverOS） | ✅ | ❌ 捕捉端没有国产 |
 
-**agent-baton 填的就是这个格子。** 思路不是迁移会话（做不到），而是：**不迁会话，迁状态**——把任务状态放进仓库里的三个 markdown 文件，任何工具、任何模型都能读。
+**codebaton 填的就是这个格子。** 思路不是迁移会话（做不到），而是：**不迁会话，迁状态**——把任务状态放进仓库里的三个 markdown 文件，任何工具、任何模型都能读。
 
 ## 三件套
 
@@ -35,9 +35,9 @@ npx agent-baton init
 ## 三个命令
 
 ```bash
-npx agent-baton init      # 生成三件套（检测到已有文件不覆盖）
-npx agent-baton handoff   # 用 git 事实（分支/未提交改动/最近提交/diff）自动起草交接草稿
-npx agent-baton board     # 终端渲染 TASKS.md 看板
+npx codebaton init      # 生成三件套（检测到已有文件不覆盖）
+npx codebaton handoff   # 用 git 事实（分支/未提交改动/最近提交/diff）自动起草交接草稿
+npx codebaton board     # 终端渲染 TASKS.md 看板
 ```
 
 `handoff` 的用法：切换工具前运行它，把生成的 `HANDOFF.draft.md` 交给当前 agent：
@@ -53,7 +53,7 @@ git 收集事实，agent 补充"为什么"——交接稿既有硬数据又有�
 ```
 你（手机/地铁上，ZCode 会话里）：把登录改成手机号验证码，做一半要下车了
 ZCode：改完 TtdkLoginController，编译通过，TASKS.md 挂"进行中"，
-       npx agent-baton handoff 起草交接，commit
+       npx codebaton handoff 起草交接，commit
 ——晚上——
 你：DeepSeek 打开同一仓库
 你：读 AGENTS.md、TASKS.md、HANDOFF.md，继续进行中任务
@@ -67,13 +67,13 @@ DeepSeek：明白，登录改到手机号验证码，controller 已有雏形，
 对，工具的核心就是三个文件和一条纪律，CLI 只是让"初始化"和"交接"更省事。我们刻意不碰任何 harness 的私有会话格式——所以它永远兼容，各家工具改版、出新模型都不影响。
 
 **Q：和 Backlog.md / 任务管理工具有什么区别？**
-它们管"任务列表"，agent-baton 管"跨工具接力"——重点是 HANDOFF 交接仪式和给 agent 的定向协议（AGENTS.md 红线 + 验证纪律）。可以配合使用。
+它们管"任务列表"，codebaton 管"跨工具接力"——重点是 HANDOFF 交接仪式和给 agent 的定向协议（AGENTS.md 红线 + 验证纪律）。可以配合使用。
 
 **Q：为什么不做成 GUI / 管理面板？**
 面板解决"同时跑多个 agent"的体验问题，三件套解决"换 agent 不丢状态"的问题，两层互补不冲突。先用文件跑顺流程，真需要面板再选（那时你已经有了干净的任务数据）。
 
 **Q：Claude Code 用户能用吗？**
-能用，它对 Claude Code 同样有效——只是 Claude Code 生态已有更多现成工具可选，agent-baton 对国产 harness（ZCode / DeepSeek / Kimi / MiniMax / Qwen Code）用户价值最大。
+能用，它对 Claude Code 同样有效——只是 Claude Code 生态已有更多现成工具可选，codebaton 对国产 harness（ZCode / DeepSeek / Kimi / MiniMax / Qwen Code）用户价值最大。
 
 ## 承诺（Design Principles）
 
