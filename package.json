@@ -1,6 +1,6 @@
 {
   "name": "codebaton",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "跨 AI 编程工具接力协议：让 ZCode / DeepSeek / Kimi / MiniMax / Claude Code 等任意 harness 接住同一个任务。三件套 AGENTS.md+TASKS.md+HANDOFF.md，零依赖、无遥测、即用即走",
   "license": "MIT",
   "author": "dzp",

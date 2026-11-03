@@ -189,6 +189,30 @@ function cmdBrief() {
   console.log(c.dim('若某工具不自动读 AGENTS.md，用完整版："读 AGENTS.md、TASKS.md、HANDOFF.md，继续进行中任务"'));
 }
 
+// ---------- dig（猝死考古口令）----------
+
+function cmdDig() {
+  const lines = [
+    '按 AGENTS.md 接手，但上一工具疑似中途断掉、可能有半成品改动。先考古再动手：',
+    '1. 跑 AGENTS.md 里的最小验证命令（如 mvn -pl <模块> -am compile / npm test），记下报错位置——半截改动会自己暴露在报错里',
+    '2. git log --oneline -5 与 git diff 看最近提交和未提交改动',
+    '3. 读 TASKS.md「进行中」条目的口径，与改动对照，推断改到哪一步、还差什么',
+    '4. 输出：① 断点位置 ② 推断的意图 ③ 完成计划 ④ 拿不准的问题清单；等我确认后再改代码',
+  ];
+  const prompt = lines.join('\n');
+  console.log('考古口令（上一工具没写交接就断了时，发给接手工具）：\n');
+  console.log(c.bold(prompt) + '\n');
+  let copied = false;
+  try {
+    const cp = process.platform === 'darwin' ? 'pbcopy' : process.platform === 'win32' ? 'clip' : 'wl-copy';
+    execFileSync(cp, { input: prompt, stdio: ['pipe', 'ignore', 'ignore'] });
+    copied = true;
+  } catch { /* 无剪贴板工具也不影响 */ }
+  if (copied) console.log(c.dim('（已复制到剪贴板）\n'));
+  console.log('适用场景：会话 token 用完/崩溃，没来得及跑 handoff。');
+  console.log('预防胜于考古：每完成一个小步骤就跑验证命令 + commit，把半成品窗口压到分钟级。');
+}
+
 // ---------- 入口 ----------
 
 const HELP = `
@@ -197,6 +221,7 @@ ${c.bold('codebaton')} — 跨 AI 编程工具接力协议（ZCode / DeepSeek / 
 用法：
   npx codebaton init [目录]     生成三件套（AGENTS.md / TASKS.md / HANDOFF.md，已存在的不覆盖）
   npx codebaton brief           开工口令：一句话让任意工具接手（自动复制到剪贴板）
+  npx codebaton dig             考古口令：上一工具猝死没写交接时，让接手者先定位半成品再动手
   npx codebaton handoff [目录]  用 git 事实自动起草交接，交给当前 agent 合并进 HANDOFF.md
   npx codebaton board [目录]    终端渲染 TASKS.md 任务看板
 
@@ -207,6 +232,7 @@ const [, , cmd, ...rest] = process.argv;
 switch (cmd) {
   case 'init': cmdInit(rest[0]); break;
   case 'brief': cmdBrief(); break;
+  case 'dig': cmdDig(); break;
   case 'handoff': cmdHandoff(rest[0]); break;
   case 'board': cmdBoard(rest[0]); break;
   case undefined:
