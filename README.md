@@ -39,6 +39,7 @@ npx codebaton init      # 生成三件套（检测到已有文件不覆盖）
 npx codebaton handoff   # 用 git 事实（分支/未提交改动/最近提交/diff）自动起草交接草稿
 npx codebaton brief     # 开工口令：一句话让任意工具接手（自动复制到剪贴板）
 npx codebaton dig       # 考古口令：上一工具猝死没写交接时，先定位半成品再动手
+npx codebaton check     # 健康检查：三件套齐全性/占位符/git 基线/文档是否落后提交
 npx codebaton board     # 终端渲染 TASKS.md 看板
 ```
 
@@ -47,6 +48,8 @@ npx codebaton board     # 终端渲染 TASKS.md 看板
 > 读 HANDOFF.draft.md，结合本轮会话补全交接（做了什么/为什么/坑/下一步），合并进 HANDOFF.md 后删除草稿
 
 git 收集事实，agent 补充"为什么"——交接稿既有硬数据又有决策上下文。
+
+**怕文档悄悄过期？** `npx codebaton check` 一秒体检：三件套是否齐全、AGENTS.md 占位符填没填、有没有入 git 基线、文档落后 HEAD 多少个提交（落后 10+ 会标红）——这是实战教出来的功能：一个仓库文档落后 26 个提交没人发现，靠接手工具考古才兜住。
 
 **猝死了没来得及交接？** `npx codebaton dig` 给你考古口令：让接手工具先跑验证命令定位半成品（编译错误会暴露断点）、对照 TASKS 口径推断意图、列出计划和疑问等你确认，然后才动手。预防胜于考古：每完成一个小步骤就跑验证 + commit，把半成品窗口压到分钟级。
 

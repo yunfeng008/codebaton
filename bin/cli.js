@@ -213,6 +213,66 @@ function cmdDig() {
   console.log('预防胜于考古：每完成一个小步骤就跑验证命令 + commit，把半成品窗口压到分钟级。');
 }
 
+// ---------- check（三件套健康检查）----------
+
+function cmdCheck(targetDir) {
+  targetDir = path.resolve(targetDir || process.cwd());
+  console.log(c.bold(`🩺 三件套健康检查（${path.basename(targetDir)}）\n`));
+  let problems = 0;
+
+  // 1. 存在性
+  const missing = FILES.filter((f) => !fs.existsSync(path.join(targetDir, f)));
+  if (missing.length) {
+    console.log(c.red(`✗ 缺少文件：${missing.join('、')}（先跑 npx codebaton init）`));
+    problems += missing.length;
+    console.log('');
+    return;
+  }
+  console.log(c.green('✓ AGENTS.md / TASKS.md / HANDOFF.md 齐全'));
+
+  // 2. 占位符是否已填
+  const agents = fs.readFileSync(path.join(targetDir, 'AGENTS.md'), 'utf8');
+  const phCount = (agents.match(/【占位[：:]/g) || []).length;
+  if (phCount) {
+    console.log(c.yellow(`⚠ AGENTS.md 还有 ${phCount} 处【占位】未填——新工具读到的是空协议`));
+    problems++;
+  } else {
+    console.log(c.green('✓ AGENTS.md 占位符已填完'));
+  }
+
+  // 3. git 基线与新鲜度
+  if (git(['rev-parse', '--is-inside-work-tree'], targetDir) !== 'true') {
+    console.log(c.yellow('⚠ 不是 git 仓库：三件套没有基线，接手方无法对账（协议要求 git 作状态层）'));
+    problems++;
+    console.log('');
+    return;
+  }
+  const porcelain = git(['status', '--porcelain'], targetDir) || '';
+  const untracked = FILES.filter((f) => porcelain.split('\n').some((l) => l.startsWith('??') && l.trim().endsWith(f)));
+  if (untracked.length) {
+    console.log(c.yellow(`⚠ ${untracked.join('、')} 未提交入库——没有基线，agent 改文档将无法 diff 对账（dkkfly-boot 的教训）`));
+    problems++;
+  } else {
+    console.log(c.green('✓ 三件套已入 git 基线'));
+    const docHash = git(['log', '-1', '--format=%H', '--', 'TASKS.md', 'HANDOFF.md'], targetDir);
+    const headHash = git(['rev-parse', 'HEAD'], targetDir);
+    if (docHash && headHash && docHash !== headHash) {
+      const behind = parseInt(git(['rev-list', '--count', docHash + '..' + headHash], targetDir) || '0', 10);
+      const docDate = git(['log', '-1', '--format=%cs', '--', 'TASKS.md', 'HANDOFF.md'], targetDir);
+      if (behind > 0) {
+        const level = behind >= 10 ? c.red : behind >= 3 ? c.yellow : c.dim;
+        console.log(level(`⚠ 三件套最后更新于 ${docDate}，已落后 HEAD ${behind} 个提交——文档可能过期，建议收尾时跑 npx codebaton handoff`));
+        if (behind >= 10) problems++;
+      } else {
+        console.log(c.green('✓ 三件套与 HEAD 同步'));
+      }
+    }
+  }
+
+  console.log('');
+  console.log(problems ? c.yellow(`发现 ${problems} 类问题，见上。`) : c.green('一切正常。'));
+}
+
 // ---------- 入口 ----------
 
 const HELP = `
@@ -222,6 +282,7 @@ ${c.bold('codebaton')} — 跨 AI 编程工具接力协议（ZCode / DeepSeek / 
   npx codebaton init [目录]     生成三件套（AGENTS.md / TASKS.md / HANDOFF.md，已存在的不覆盖）
   npx codebaton brief           开工口令：一句话让任意工具接手（自动复制到剪贴板）
   npx codebaton dig             考古口令：上一工具猝死没写交接时，让接手者先定位半成品再动手
+  npx codebaton check [目录]    三件套健康检查：齐全性/占位符/git 基线/文档是否落后提交
   npx codebaton handoff [目录]  用 git 事实自动起草交接，交给当前 agent 合并进 HANDOFF.md
   npx codebaton board [目录]    终端渲染 TASKS.md 任务看板
 
@@ -233,6 +294,7 @@ switch (cmd) {
   case 'init': cmdInit(rest[0]); break;
   case 'brief': cmdBrief(); break;
   case 'dig': cmdDig(); break;
+  case 'check': cmdCheck(rest[0]); break;
   case 'handoff': cmdHandoff(rest[0]); break;
   case 'board': cmdBoard(rest[0]); break;
   case undefined:
