@@ -186,7 +186,8 @@ function cmdBrief() {
   if (copied) console.log(c.dim('（已复制到剪贴板）\n'));
   console.log('为什么一句话就够：AGENTS.md 里已写明"开工前先读 TASKS.md 和 HANDOFF.md"，');
   console.log('协议住在文件里，口令只负责叫门。');
-  console.log(c.dim('若某工具不自动读 AGENTS.md，用完整版："读 AGENTS.md、TASKS.md、HANDOFF.md，继续进行中任务"'));
+  console.log(c.dim('全场景通用：正常接手、上一工具猝死、文档过期——接手者读到本文件会按接手规则自行判断。'));
+  console.log(c.dim('极少数不读 AGENTS.md 的工具，用完整版："读 AGENTS.md、TASKS.md、HANDOFF.md，继续进行中任务"'));
 }
 
 // ---------- dig（猝死考古口令）----------
@@ -200,7 +201,7 @@ function cmdDig() {
     '4. 输出：① 断点位置 ② 推断的意图 ③ 完成计划 ④ 拿不准的问题清单；等我确认后再改代码',
   ];
   const prompt = lines.join('\n');
-  console.log('考古口令（上一工具没写交接就断了时，发给接手工具）：\n');
+  console.log('考古口令（长版兜底：上一工具没写交接、或该工具不读 AGENTS.md 时用）：\n');
   console.log(c.bold(prompt) + '\n');
   let copied = false;
   try {
