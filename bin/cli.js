@@ -274,6 +274,104 @@ function cmdCheck(targetDir) {
   console.log(problems ? c.yellow(`发现 ${problems} 类问题，见上。`) : c.green('一切正常。'));
 }
 
+// ---------- snapshot（Stop 钩子自动快照，内部命令）----------
+
+const AUTO_START = '<!-- codebaton:auto:start -->';
+const AUTO_END = '<!-- codebaton:auto:end -->';
+
+function cmdSnapshot() {
+  const dir = process.env.ZCODE_PROJECT_DIR || process.cwd();
+  const handoffPath = path.join(dir, 'HANDOFF.md');
+  if (!fs.existsSync(handoffPath) || !fs.existsSync(path.join(dir, 'TASKS.md'))) return; // 无协议仓库，静默退出
+  if (git(['rev-parse', '--is-inside-work-tree'], dir) !== 'true') return;
+  const branch = git(['rev-parse', '--abbrev-ref', 'HEAD'], dir) || '?';
+  const porcelain = git(['status', '--porcelain'], dir) || '';
+  const changed = porcelain ? porcelain.split('\n').filter(Boolean).length : 0;
+  const last = git(['log', '-1', '--format=%h %s'], dir) || '(无提交)';
+  const now = new Date().toLocaleString('zh-CN', { hour12: false });
+  const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const block = [
+    AUTO_START,
+    '## ⏱️ 自动快照（codebaton 钩子维护，勿手改）',
+    '',
+    `- 时间：${now}`,
+    `- 分支：\`${branch}\``,
+    `- 未提交改动：${changed} 个文件${changed ? '（接手请先 git diff 核对）' : '，工作区干净'}`,
+    `- 最近提交：${last}`,
+    AUTO_END,
+  ].join('\n');
+  let s = fs.readFileSync(handoffPath, 'utf8');
+  const re = new RegExp(esc(AUTO_START) + '[\\s\\S]*?' + esc(AUTO_END));
+  if (re.test(s)) s = s.replace(re, block);
+  else s = s.trimEnd() + '\n\n' + block + '\n';
+  fs.writeFileSync(handoffPath, s);
+  process.stdout.write(''); // 静默：钩子输出走严格 JSON 校验，空输出最安全
+}
+
+// ---------- hook install / uninstall（ZCode Stop 钩子自动快照）----------
+
+const HOOK_MARKER = 'codebaton 快照';
+
+function hookConfigPath() {
+  return process.env.CODEBATON_CONFIG || path.join(process.env.HOME || require('os').homedir(), '.zcode', 'cli', 'config.json');
+}
+
+function cmdHookInstall() {
+  const cfgPath = hookConfigPath();
+  let cfg = {};
+  if (fs.existsSync(cfgPath)) {
+    try { cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8')); }
+    catch (e) { console.error(c.red(`✗ ${cfgPath} 不是合法 JSON，拒绝修改（请手工检查）`)); process.exit(1); }
+  }
+  if (!cfg.hooks || typeof cfg.hooks !== 'object') cfg.hooks = {};
+  cfg.hooks.enabled = true; // 配置钩子默认禁用，必须显式开启
+  if (!cfg.hooks.events || typeof cfg.hooks.events !== 'object') cfg.hooks.events = {};
+  if (!Array.isArray(cfg.hooks.events.Stop)) cfg.hooks.events.Stop = [];
+  // 幂等：先移除旧的 codebaton 条目
+  cfg.hooks.events.Stop = cfg.hooks.events.Stop.filter((grp) => {
+    const rest = (grp.hooks || []).filter((h) => h.statusMessage !== HOOK_MARKER);
+    if (!rest.length) return false;
+    grp.hooks = rest;
+    return true;
+  });
+  cfg.hooks.events.Stop.push({
+    hooks: [{
+      type: 'process',
+      command: process.execPath,
+      args: [path.resolve(__dirname, 'cli.js'), 'snapshot'],
+      timeoutMs: 15000,
+      statusMessage: HOOK_MARKER,
+    }],
+  });
+  fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
+  console.log(c.green('✓ Stop 钩子已安装：每轮对话结束，自动在 HANDOFF.md 更新进度快照'));
+  console.log(c.dim('  配置文件：' + cfgPath));
+  console.log(c.dim('  新开的 ZCode 会话生效；目录无三件套时自动跳过；`codebaton hook uninstall` 一键移除'));
+  console.log(c.dim('  效果：会话猝死（限额/崩溃）最多丢一轮，接手者读 HANDOFF 即见最新进度'));
+}
+
+function cmdHookUninstall() {
+  const cfgPath = hookConfigPath();
+  if (!fs.existsSync(cfgPath)) { console.log(c.dim('未找到 hook 配置，无需移除')); return; }
+  let cfg;
+  try { cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8')); }
+  catch (e) { console.error(c.red('✗ 配置不是合法 JSON，拒绝修改')); process.exit(1); }
+  let removed = false;
+  if (cfg.hooks && cfg.hooks.events && Array.isArray(cfg.hooks.events.Stop)) {
+    const before = JSON.stringify(cfg.hooks.events.Stop);
+    cfg.hooks.events.Stop = cfg.hooks.events.Stop.filter((grp) => {
+      const rest = (grp.hooks || []).filter((h) => h.statusMessage !== HOOK_MARKER);
+      if (!rest.length) return false;
+      grp.hooks = rest;
+      return true;
+    });
+    removed = JSON.stringify(cfg.hooks.events.Stop) !== before;
+    if (!cfg.hooks.events.Stop.length) delete cfg.hooks.events.Stop;
+  }
+  fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
+  console.log(removed ? c.green('✓ codebaton Stop 钩子已移除（其他钩子不受影响）') : c.dim('未发现 codebaton 钩子'));
+}
+
 // ---------- 入口 ----------
 
 const HELP = `
@@ -286,6 +384,8 @@ ${c.bold('codebaton')} — 跨 AI 编程工具接力协议（ZCode / DeepSeek / 
   npx codebaton check [目录]    三件套健康检查：齐全性/占位符/git 基线/文档是否落后提交
   npx codebaton handoff [目录]  用 git 事实自动起草交接，交给当前 agent 合并进 HANDOFF.md
   npx codebaton board [目录]    终端渲染 TASKS.md 任务看板
+  npx codebaton hook install    安装 ZCode Stop 钩子：每轮对话结束自动快照进 HANDOFF.md（猝死最多丢一轮）
+  npx codebaton hook uninstall  移除该钩子
 
 理念：会话不能跨工具迁移，文件可以。谁收尾，谁写交接。
 `;
@@ -297,6 +397,12 @@ switch (cmd) {
   case 'dig': cmdDig(); break;
   case 'check': cmdCheck(rest[0]); break;
   case 'handoff': cmdHandoff(rest[0]); break;
+  case 'snapshot': cmdSnapshot(); break;
+  case 'hook':
+    if (rest[0] === 'install') cmdHookInstall();
+    else if (rest[0] === 'uninstall') cmdHookUninstall();
+    else { console.error(c.red('用法：codebaton hook install|uninstall')); process.exit(1); }
+    break;
   case 'board': cmdBoard(rest[0]); break;
   case undefined:
   case '-h':
